@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<persistence version="2.1" xmlns="http://xmlns.jcp.org/xml/ns/persistence" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence http://xmlns.jcp.org/xml/ns/persistence/persistence_2_1.xsd">
+  <persistence-unit name="c4AServicesPlatformPU" transaction-type="JTA">
+      <!--<persistence-unit name="c4AServicesPlatformPU" transaction-type="RESOURCE_LOCAL">-->
+<!--    <provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
+    <class>c4a.platform.persistency.CdDetectionVariableType</class>
+    <class>c4a.platform.persistency.Pilot</class>
+    <class>c4a.platform.persistency.Action</class>
+    <class>c4a.platform.persistency.InterActivityBehaviourVariation</class>
+    <class>c4a.platform.persistency.CdFrailtyStatus</class>
+    <class>c4a.platform.persistency.CrProfile</class>
+    <class>c4a.platform.persistency.Activity</class>
+    <class>c4a.platform.persistency.CareProfile</class>
+    <class>c4a.platform.persistency.GeriatricFactorValue</class>
+    <class>c4a.platform.persistency.TimeInterval</class>
+    <class>c4a.platform.persistency.Location</class>
+    <class>c4a.platform.persistency.FrailtyStatusTimeline</class>
+    <class>c4a.platform.persistency.CdDetectionVariable</class>
+    <class>c4a.platform.persistency.CdRole</class>
+    <class>c4a.platform.persistency.SourceEvidence</class>
+    <class>c4a.platform.persistency.NumericIndicatorValue</class>
+    <class>c4a.platform.persistency.ExecutedAction</class>
+    <class>c4a.platform.persistency.CdTypicalPeriod</class>
+    <class>c4a.platform.persistency.UserInRole</class>
+    <class>c4a.platform.persistency.Assessment</class>
+    <class>c4a.platform.persistency.Eam</class>
+    <class>c4a.platform.persistency.AssessmentAudienceRole</class>
+    <class>c4a.platform.persistency.UserInSystem</class>
+    <class>c4a.platform.persistency.CdDataSourceType</class>
+    <class>c4a.platform.persistency.CdPilotDetectionVariable</class>
+    <class>c4a.platform.persistency.CdRiskStatus</class>
+    <class>c4a.platform.persistency.VariationMeasureValue</class>
+    <exclude-unlisted-classes>false</exclude-unlisted-classes>
+    <properties>
+      <property name="javax.persistence.jdbc.url" value="jdbc:postgresql://localhost:5432/c4a_individual_monitoring"/>
+      <property name="javax.persistence.jdbc.driver" value="org.postgresql.Driver"/>
+      <property name="javax.persistence.jdbc.password" value="admin"/>
+      <property name="javax.persistence.jdbc.user" value="postgres"/>
+            <property name="javax.persistence.jdbc.user" value="testuser"/>
+            <property name="javax.persistence.jdbc.password" value="123123"/>
+    </properties>-->
+     <jta-data-source>c4aDB</jta-data-source>
+    <exclude-unlisted-classes>false</exclude-unlisted-classes>
+  </persistence-unit>
+</persistence>
