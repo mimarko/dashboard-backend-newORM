@@ -89,7 +89,7 @@ public class wsServices {
         } else {
 
             query_groups = (TypedQuery) em.createQuery("SELECT c FROM CdDetectionVariable c WHERE c.detectionVariableType.detectionVariableType= :gefType");
-            query_groups.setParameter("gefType", "GEF");
+            query_groups.setParameter("gefType", "GES");
             detectionvarsparamsList = query_groups.getResultList();
         }
 
@@ -104,7 +104,7 @@ public class wsServices {
 //                System.out.println("id " + types.getId()
 //                        + " name " + types.getDetectionVariableName());
                 query = (TypedQuery) em.createQuery("SELECT g FROM GeriatricFactorValue g WHERE g.gefTypeId.id = :varId "
-                        + "and g.userInRoleId.id = :userId");
+                        + "and g.userInRoleId.id = :userId order by g.timeIntervalId.intervalStart asc");
                 query.setParameter("varId", types.getId());
                 query.setParameter("userId", Integer.parseInt(careReceiverId));
 
@@ -128,7 +128,7 @@ public class wsServices {
                     response.setMessage("success");
                     response.setResponseCode(10);
 
-                    response.setCareReceiverName(gereatricfactparamsList.get(0).getUserInRoleId().getUserInSystemId().getUsername());
+                    //response.setCareReceiverName(gereatricfactparamsList.get(0).getUserInRoleId().getUserInSystemId().getUsername());
                     itemList.add(new C4ServiceGetOverallScoreListResponse(gereatricfactparamsList));
 
 //                     C4ACareReceiverGroupsResponse res = new C4ACareReceiverGroupsResponse(gereatricfactparamsList.get(0).getDetectionVariableId().getParentFactorId().getDetectionVariableName(),itemList);
@@ -144,7 +144,6 @@ public class wsServices {
 
     @GET
     @Path("getCareReceivers")
-    @Consumes("application/json")
     @Produces("application/json")
     public C4ACareReceiversResponse getJson() throws IOException {
         /**
@@ -253,7 +252,6 @@ public class wsServices {
 
     @GET
     @Path("login")
-    @Consumes("application/json")
     @Produces("application/json")
     public C4ALoginResponse login(@QueryParam("username") String username, @QueryParam("password") String password) throws IOException {
         /**
@@ -316,3 +314,4 @@ public class wsServices {
 
     }
 }//end class
+
