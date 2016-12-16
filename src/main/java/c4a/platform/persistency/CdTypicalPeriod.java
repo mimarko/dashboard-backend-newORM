@@ -47,9 +47,9 @@ public class CdTypicalPeriod implements Serializable {
     @Size(min = 1, max = 50)
     @Column(name = "period_description")
     private String periodDescription;
-    @Lob
-    @Column(name = "typical_duration")
-    private byte[] typicalDuration;
+    //@Lob
+    //@Column(name = "typical_duration")
+    //private byte[] typicalDuration;
    
 
     public CdTypicalPeriod() {
@@ -80,13 +80,13 @@ public class CdTypicalPeriod implements Serializable {
         this.periodDescription = periodDescription;
     }
 
-    public byte[] getTypicalDuration() {
-        return typicalDuration;
-    }
+    //public byte[] getTypicalDuration() {
+    //    return typicalDuration;
+    //}
 
-    public void setTypicalDuration(byte[] typicalDuration) {
-        this.typicalDuration = typicalDuration;
-    }
+    //public void setTypicalDuration(byte[] typicalDuration) {
+    //    this.typicalDuration = typicalDuration;
+    //}
 
   
     @Override
