@@ -24,6 +24,7 @@ public class C4ServiceGetOverallScoreListResponse {
     private final SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM");
 
     private String groupName;
+    private Integer gefTypeId;
 
     private String parentGroupName;
 
@@ -38,7 +39,7 @@ public class C4ServiceGetOverallScoreListResponse {
             ItemList.add(factors.getGefValue().floatValue());
             idList.add(factors.getId());
             String date = sdf.format(factors.getTimeIntervalId().getIntervalStart());
-
+            gefTypeId = factors.getGefTypeId() !=null ? factors.getGefTypeId().getId() : null;
             dateList.add(date);
             groupName = factors.getGefTypeId().getDetectionVariableName();
 
@@ -71,5 +72,21 @@ public class C4ServiceGetOverallScoreListResponse {
     public void setParentGroupName(String parentGroupName) {
         this.parentGroupName = parentGroupName;
     }
+
+    /**
+     * @return the gefTypeId
+     */
+    public Integer getGefTypeId() {
+        return gefTypeId;
+    }
+
+    /**
+     * @param gefTypeId the gefTypeId to set
+     */
+    public void setGefTypeId(Integer gefTypeId) {
+        this.gefTypeId = gefTypeId;
+    }
+
+    
 
 }//end class
