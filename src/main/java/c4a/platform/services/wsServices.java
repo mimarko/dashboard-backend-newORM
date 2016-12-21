@@ -26,7 +26,12 @@ import c4a.platform.bl.C4ACareReceiversResponse;
 import c4a.platform.bl.C4AGroupsResponse;
 import c4a.platform.bl.C4ALoginResponse;
 import c4a.platform.bl.C4ServiceGetOverallScoreListResponse;
+import c4a.platform.bl.DataSet;
+import c4a.platform.bl.Group;
+import c4a.platform.bl.Item;
+import c4a.platform.bl.Serie;
 import c4a.platform.persistency.FrailtyStatusTimeline;
+import c4a.platform.persistency.TimeInterval;
 import c4a.platform.persistency.UserInSystem;
 import java.util.Arrays;
 import javax.persistence.EntityManager;
@@ -317,144 +322,83 @@ public class wsServices {
     @Path("getDiagramData")
     @Produces("application/json")
     public C4AGroupsResponse getDiagramData(@QueryParam("careReceiverId") String careReceiverId, @QueryParam("parentFactorId") Integer parentFactorId) throws IOException {
-            C4AGroupsResponse response = new C4AGroupsResponse();
+        DataSet response = new DataSet();
         TypedQuery query;
+        List<GeriatricFactorValue> gfvList;
+        ArrayList<C4ServiceGetOverallScoreListResponse> itemList = new ArrayList<C4ServiceGetOverallScoreListResponse>();
+        query = (TypedQuery) em.createQuery("SELECT g FROM GeriatricFactorValue g  "
+                + "JOIN g.gefTypeId detvar WHERE detvar.derivedDetectionVariableId.id = :varId "
+                + "and g.userInRoleId.id = :userId order by g.timeIntervalId.intervalStart asc");
+        query.setParameter("varId", parentFactorId);
+        query.setParameter("userId", Integer.parseInt(careReceiverId));
 
-        TypedQuery query_groups;
-
-        List<GeriatricFactorValue> gereatricfactparamsList;
-        List<CdDetectionVariable> detectionvarsparamsList;
-        ArrayList<C4ServiceGetOverallScoreListResponse> itemList;
-
-        /**
-         * ****************Action*************
-         */
-//        if (em == null) {
-//            init();
-//        }
-
-        if (parentFactorId == -1) {
-            List<String> parentFactors = Arrays.asList("OVL", "GFG");
-            query_groups = (TypedQuery) em.createQuery("SELECT c FROM CdDetectionVariable c WHERE c.detectionVariableType.detectionVariableType IN :gefType ");
-            query_groups.setParameter("gefType", parentFactors);
-            detectionvarsparamsList = query_groups.getResultList();
-        } else {
-
-            query_groups = (TypedQuery) em.createQuery("SELECT c FROM CdDetectionVariable c WHERE c.detectionVariableType.detectionVariableType= :gefType");
-            query_groups.setParameter("gefType", "GES");
-            detectionvarsparamsList = query_groups.getResultList();
-        }
-
-        if (detectionvarsparamsList.isEmpty()) {
-            response.setMessage("No detection variables found");
+        //we use list to avoid "not found" exception
+        gfvList = query.getResultList();
+        //
+        if (gfvList.isEmpty()) {
+            response.setMessage("No factors for this group");
             response.setResponseCode(0);
-            return response;
         } else {
-            itemList = new ArrayList<C4ServiceGetOverallScoreListResponse>();
-            for (CdDetectionVariable types : detectionvarsparamsList) {
-
-//                System.out.println("id " + types.getId()
-//                        + " name " + types.getDetectionVariableName());
-                query = (TypedQuery) em.createQuery("SELECT g FROM GeriatricFactorValue g WHERE g.gefTypeId.id = :varId "
-                        + "and g.userInRoleId.id = :userId order by g.timeIntervalId.intervalStart asc");
-                query.setParameter("varId", types.getId());
-                query.setParameter("userId", Integer.parseInt(careReceiverId));
-
-                //we use list to avoid "not found" exception
-                gereatricfactparamsList = query.getResultList();
-                //
-                if (gereatricfactparamsList.isEmpty()) {
-                    response.setMessage("No factors for this group");
-                    response.setResponseCode(0);
-                    response.setCareReceiverName("");
-                    response.setItemList(null);
-                } else {
-
-//                    for (GeriatricFactorValue factors : gereatricfactparamsList) {
-//                        System.out.println("id "+factors.getId()+" variable type " + factors.getGefTypeId().getDetectionVariableName()
-//                                + " of group " + factors.getGefTypeId().getDerivedDetectionVariableId().getDetectionVariableName()
-//                                + " value " + factors.getGefValue()+
-//                                " time "+factors.getTimeIntervalId().getIntervalStart());
-//                    }
-//                    System.out.println("size " + gereatricfactparamsList.size());
-                    response.setMessage("success");
-                    response.setResponseCode(10);
-
-                    //response.setCareReceiverName(gereatricfactparamsList.get(0).getUserInRoleId().getUserInSystemId().getUsername());
-                    itemList.add(new C4ServiceGetOverallScoreListResponse(gereatricfactparamsList));
-
-//                     C4ACareReceiverGroupsResponse res = new C4ACareReceiverGroupsResponse(gereatricfactparamsList.get(0).getDetectionVariableId().getParentFactorId().getDetectionVariableName(),itemList);
+            response.setMessage("success");
+            response.setResponseCode(10);
+            
+            for (GeriatricFactorValue gfv : gfvList) {
+                Group g = findOrCreateGroup(response, gfv.getTimeIntervalId());
+                if(g==null){
+                    g = new Group();
+                    g.setId(gfv.getTimeIntervalId().getId());
+                    SimpleDateFormat sdf = new SimpleDateFormat("MMM yyyy");
+                    g.setName( sdf.format( gfv.getTimeIntervalId().getIntervalStart()));
+                    response.getGroups().add(g);
                 }
+                Serie s = findOrCreateSerie(response,gfv.getGefTypeId());
+                if(s==null){
+                    s = new Serie();
+                    s.setName(gfv.getGefTypeId().getDetectionVariableName());
+                    response.getSeries().add(s);
+                }
+                
+                Item i = findOrCreateItem(response,gfv);
+                if(i==null){
+                    i = new Item();
+                    i.setId(gfv.getId());
+                    i.setValue(gfv.getGefValue().floatValue());
+                    i.setGefTypeId(gfv.getGefTypeId().getId());
+                    s.getItems().add(i);
+                }
+                
+            }
 
-            }//detectionVariables loop        
-            response.setItemList(itemList);
-        }//end detectionVariables is empty
-
+        }
+        response.setItemList(itemList);
         return response;
-
-//        /**
-//         * ****************Variables*************
-//         */
-//        C4AGroupsResponse response = new C4AGroupsResponse();
-//        TypedQuery query;
-//
-//        TypedQuery query_groups;
-//
-//        List<GeriatricFactorValue> gereatricfactparamsList = new ArrayList<GeriatricFactorValue>();
-//        List<CdDetectionVariable> detectionvarsparamsList;
-//        ArrayList<C4ServiceGetOverallScoreListResponse> itemList;
-//
-//        /**
-//         * ****************Action*************
-//         */
-//        if (parentFactorId == -1) {
-//            List<String> parentFactors = Arrays.asList("OVL", "GFG");
-//            query_groups = (TypedQuery) em.createQuery("SELECT c FROM CdDetectionVariable c WHERE c.detectionVariableType.detectionVariableType IN :gefType ");
-//            query_groups.setParameter("gefType", parentFactors);
-//            detectionvarsparamsList = query_groups.getResultList();
-//        } else {
-//            query_groups = (TypedQuery) em.createQuery("SELECT c FROM CdDetectionVariable c WHERE c.derivedDetectionVariableId.id = :parentFactorId");
-//            query_groups.setParameter("parentFactorId", parentFactorId);
-//            detectionvarsparamsList = query_groups.getResultList();
-//        }
-//
-//        if (detectionvarsparamsList.isEmpty()) {
-//            response.setMessage("No detection variables found");
-//            response.setResponseCode(0);
-//            return response;
-//        } else {
-//            itemList = new ArrayList<C4ServiceGetOverallScoreListResponse>();
-//            for (CdDetectionVariable types : detectionvarsparamsList) {
-//
-//                query = (TypedQuery) em.createQuery("SELECT g FROM GeriatricFactorValue g "
-//                        + " WHERE g.gefTypeId.id = :varId "
-//                        + " and g.userInRoleId.id = :userId"
-//                        + " order by g.timeIntervalId.intervalStart asc");
-//                query.setParameter("varId", types.getId());
-//                query.setParameter("userId", Integer.parseInt(careReceiverId));
-//
-//                //we use list to avoid "not found" exception
-//                List<GeriatricFactorValue> gefs = query.getResultList();
-//                //
-//                if (!gefs.isEmpty()) {
-//                    gereatricfactparamsList.addAll(gefs);
-//                }
-//            }
-//              if(gereatricfactparamsList.size()>0){
-//                  response.setMessage("success");
-//                    response.setResponseCode(10);
-//                    itemList.add(new C4ServiceGetOverallScoreListResponse(gereatricfactparamsList));
-//              }else{
-//                  response.setMessage("No detection variables found");
-//                    response.setResponseCode(0);
-//                    response.setItemList(null);
-//                    return response;
-//              }
-//            response.setItemList(itemList);
-//        }//end detectionVariables is empty
-//
-//        return response;
-
     }//end method
+
+    private Group findOrCreateGroup(DataSet ds, TimeInterval ti) {
+        
+        for (Group g : ds.getGroups()) {
+            if(g.getId().equals(ti.getId())) return g;
+        }
+        return null;
+    }
+
+    private Serie findOrCreateSerie(DataSet ds, CdDetectionVariable gefTypeId) {
+        for (Serie s : ds.getSeries()) {
+            if(s.getName().equals(gefTypeId.getDetectionVariableName())){
+                return s;
+            }
+        }
+        return null;
+    }
+
+    private Item findOrCreateItem(DataSet ds, GeriatricFactorValue gfv) {
+        for (Serie s : ds.getSeries()) {
+            for (Item i : s.getItems()) {
+                if(i.getId().equals(gfv.getId()))
+                    return i;
+            }
+        }
+        return null;
+    }
 }//end class
 
